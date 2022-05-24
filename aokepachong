@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+from bs4 import BeautifulSoup
+import requests
+import pymysql
+
+if __name__ == '__main__':
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='lottery', charset='utf8')
+
+    cursor = conn.cursor()
+
+    target = 'https://jingcai.okooo.com/'
+    req = requests.get(url=target)
+    # print(req.encoding)  # ISO-8859-1
+    html = req.text.encode('ISO-8859-1').decode('gbk')
+    bf = BeautifulSoup(html, features='html.parser')
+    texts = bf.find_all('body', class_='spf spf2h1')
+    # print(texts[0])
+    bf1 = BeautifulSoup(str(texts[0]), features='html.parser')
+    bf2 = bf1.find_all('div', class_='box')
+    # print(bf2[0])
+    bf3 = BeautifulSoup(str(bf2[0]), features='html.parser')
+
+    bf4 = bf3.find_all('div', class_='cont')
+    # print(bf4[1])
+    bf5 = BeautifulSoup(str(bf4[1]), features='html.parser')
+    bf6 = bf5.find_all('div', class_='touzhu')
+    # print(bf6[0])
+    bf7 = BeautifulSoup(str(bf6[0]), features='html.parser')
+    bf8 = bf7.find_all('div', class_='touzhu_1')
+    for each in bf8:
+        print(each.get("data-hname"))
+        bf9 = BeautifulSoup(str(each), features='html.parser')
+        bf10 = bf9.find_all('div', class_='shenpf')
+        bf11 = BeautifulSoup(str(bf10[0]), features='html.parser')
+        bf12 = bf11.find_all('div', class_='zhu')
+        print(bf12[0].get("data-sp"))
+        sql2 = "insert into lottery0503 (name,date01,date02,date03,date04,result) values ('%s','%s',''," \
+               "'','','')" % (each.get('data-hname'), bf12[0].get("data-sp"))
+        cursor.execute(sql2)
+
+    # 提交事务:
+    conn.commit()
+    cursor.close()
